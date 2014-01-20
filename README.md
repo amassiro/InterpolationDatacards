@@ -154,8 +154,14 @@ Now copy the root files
     ls -d */ | awk '{print "cp "$1"/*.txt ../couplings/vhww/"$1"/"}' | /bin/sh
 
 
+### commit
 
-
+    # to clean:    rm  */*_vh2j*.txt */shapes/*vh2j*.root
+    
+    cd ../searches/vhww
+    svn commit -m "" */*_vh2j*.txt */shapes/*vh2j*.root
+    cd ../../couplings/vhww
+    svn commit -m "" */*_vh2j*.txt */shapes/*vh2j*.root
 
 
 
@@ -167,6 +173,13 @@ Now copy the root files
 
 # VBF
 
+copy file:
+
+    scp amassiro@cmsmi4.cern.ch:/data2/amassiro/VBF/Summer12/28Jan2013/Shape/playground/vbfMllDF.tgz ./
+    scp amassiro@cmsmi4.cern.ch:/data2/amassiro/VBF/Summer12/28Jan2013/Shape/playground/vbfMll2011DF.tgz ./
+
+prepare:
+    
     rm -r ???.?/
     rm -r ???/
 
@@ -216,6 +229,7 @@ Now copy the root files
 
     
 #### then extract cut based
+#### not required! Cut based provided by Guillelmo
 
     tar -xvf vbfCutBasedDF.tgz
     
@@ -248,19 +262,19 @@ Now copy the root files
 
 
     
-    
-    
-    
+        
 #### interpolate ####
+
+    r00t -q Interpolation.cxx\(\"hwwof_2j_shape_8TeV.txt\",\"19.36\",\"of_2j_shape_mll\",8\)
+    r00t -q Interpolation.cxx\(\"hwwof_2j_shape_7TeV.txt\",\"4.92\",\"of_2j_shape_mll\",7\)
+
+#### not required! Cut based provided by Guillelmo
 
     r00t -q Interpolation.cxx\(\"hwwof_2j_cut_8TeV.txt\",\"19.36\",\"of_2j_shape\",8\)
     r00t -q Interpolation.cxx\(\"hwwsf_2j_cut_8TeV.txt\",\"19.36\",\"sf_2j_shape\",8\)
 
     r00t -q Interpolation.cxx\(\"hwwof_2j_cut_7TeV.txt\",\"4.92\",\"of_2j_shape\",7\)
     r00t -q Interpolation.cxx\(\"hwwsf_2j_cut_7TeV.txt\",\"4.92\",\"sf_2j_shape\",7\)
-
-    r00t -q Interpolation.cxx\(\"hwwof_2j_shape_8TeV.txt\",\"19.36\",\"of_2j_shape_mll\",8\)
-    r00t -q Interpolation.cxx\(\"hwwof_2j_shape_7TeV.txt\",\"4.92\",\"of_2j_shape_mll\",7\)
 
     
 #### modify datacards
@@ -297,3 +311,19 @@ Now copy the root files
     ls -d */ | awk '{print "cp "$1"/*.txt ../couplings/hww2l2v/"$1"/"}' | /bin/sh
 
 
+### commit
+
+    # to clean:    rm  */*_2j_shape*.txt */shapes/*2j_shape*.root
+    
+    cd ../searches/hww2l2v
+    svn commit -m "" */*_2j_shape*.txt */shapes/*2j_shape*.root
+    cd ../couplings/hww2l2v
+    svn commit -m "" */*_2j_shape*.txt */shapes/*2j_shape*.root
+
+
+
+
+    
+    
+    
+    
