@@ -3,16 +3,13 @@
 #include <vector>
 #include <map>
 
-
-//----                low   dR                 up    dR
-std::pair< std::pair <int, float> , std::pair <int, float> > GetCloserMass(float mass, std::vector<float> &vTemplateMasses) {
+int GetCloserMass(float mass, std::vector<float> &vTemplateMasses) {
  
  float Dx_lo;
  float Dx_up;
  
- int iTemplate_lo = -1;
- int iTemplate_up = -1;
- //  std::cout << " vTemplateMasses.size() = " << vTemplateMasses.size() << std::endl;
+ int iTemplate = -1;
+//  std::cout << " vTemplateMasses.size() = " << vTemplateMasses.size() << std::endl;
  if (vTemplateMasses.size() != 1) {
   for (int iMass = 0; iMass < (vTemplateMasses.size()-1); iMass++) {
    float tempDx_lo;
@@ -23,22 +20,16 @@ std::pair< std::pair <int, float> , std::pair <int, float> > GetCloserMass(float
    
    if (tempDx_lo >= 0 && tempDx_up > 0) { //----> it's between A -- mass --- B
    if (fabs (tempDx_lo) < fabs (tempDx_up)) {
-    iTemplate_lo = iMass;
-    Dx_lo = tempDx_lo;
+    iTemplate = iMass;
    }
    else {
-    iTemplate_up = iMass+1;
-    Dx_up = tempDx_up;
+    iTemplate = iMass+1;
    }
    break;
    }
   }
  }
- 
- std::pair <int, float> lo_pair (iTemplate_lo, Dx_lo);
- std::pair <int, float> up_pair (iTemplate_up, Dx_up);
- 
- return std::pair <lo_pair, up_pair> ;
+ return iTemplate; 
 }
 
 
@@ -218,11 +209,7 @@ void Interpolation(std::string templateDC, std::string lumi = "19.47", std::stri
  
  for (int iMass = 0; iMass < vNameAllMasses.size(); iMass++) {
   std::cout << " iMass = " << iMass << " : " << vNameAllMasses.size() << std::endl;
-//   int tMass = GetCloserMass(vAllMasses.at(iMass), vTemplateMasses);
-  std::pair< std::pair <int, float> , std::pair <int, float> > temp_pair = GetCloserMass(vAllMasses.at(iMass), vTemplateMasses);
-  int tMass = temp_pair.first.first;
-  
-  
+  int tMass = GetCloserMass(vAllMasses.at(iMass), vTemplateMasses);
   std::cout << "[" << iMass << ":" << vNameAllMasses.size()-1 << "] = " << vAllMasses.at(iMass) << " -> [" << tMass << "]";
 
   if (tMass == -1) { ///---- no "close" mass point
