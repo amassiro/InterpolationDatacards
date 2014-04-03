@@ -227,42 +227,42 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   std::cout << "[" << iMass << ":" << vNameAllMasses.size()-1 << "] = " << vAllMasses.at(iMass) << " -> [" << loMass << "]";
   std::cout << " < X < [" << upMass << "]";
   
-  if (loMass == -1) { ///---- no "close" mass point
+  if (loMass == -1 && upMass == -1) { ///---- no "close" mass point
    continue;
   }
   
-  if (vAllMasses.at(iMass) == vTemplateMasses.at(tMass)) { ///---- if it is an already set mass, skip!
+  if (vAllMasses.at(iMass) == vTemplateMasses.at(loMass)) { ///---- if it is an already set mass, skip!
    continue;
   }
   
-  std::cout << " = " << vNameTemplateMasses.at(tMass) << std::endl;
+  std::cout << " = " << vNameTemplateMasses.at(loMass) << std::endl;
  
   
-  TString inputDataCardT = Form ("%s/%s",vNameTemplateMasses.at(tMass).c_str(),templateDC.c_str());
-  std::string inputDataCard = inputDataCardT.Data();
+  TString inputDataCardLo = Form ("%s/%s",vNameTemplateMasses.at(loMass).c_str(),templateDC.c_str());
+  std::string inputDataCardLo = inputDataCardLo.Data();
+  TString inputDataCardHi = Form ("%s/%s",vNameTemplateMasses.at(hiMass).c_str(),templateDC.c_str());
+  std::string inputDataCardHi = inputDataCardHi.Data();
   
+  ///---- low datacard
   std::string buffer;
-  std::cout << " read :: " << inputDataCard.c_str() << std::endl;
-  std::ifstream fileData (inputDataCard.c_str());  
+  std::cout << " read :: " << inputDataCardLo.c_str() << std::endl;
+  std::ifstream fileDataLo (inputDataCardLo.c_str());  
   
   ///---- skip first lines
   for (int ie = 0; ie<11; ie++) {
-   getline(fileData,buffer);
-  }
-  
-  
+   getline(fileDataLo,buffer);
+  }  
   
   ///---- get samples names
   std::vector <std::string> vSamples;
 //   process                                                   ggH       qqH       ggWW      VgS       Vg        WJet      Top       WW        WWewk     VV        DYTT      
   int numSample = 0;
-  getline(fileData,buffer);
+  getline(fileDataLo,buffer);
   std::stringstream lineSample( buffer ); 
   std::string tempChar;
   std::string tempCharStr;
   lineSample >> tempChar; // process
-  std::string tempName = "process";  
-  
+  std::string tempName = "process";    
   
   while (1) {
    lineSample >> tempChar;
@@ -293,12 +293,12 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   
   ///---- skip one line ----
-  getline(fileData,buffer);
+  getline(fileDataLo,buffer);
   
   
   ///---- get expected rate of events
   std::vector<float> vRate;
-  getline(fileData,buffer);
+  getline(fileDataLo,buffer);
   std::stringstream line( buffer ); 
   line >> tempChar; //    rate
   for (int iSample = 0; iSample < vSamples.size(); iSample++) {
@@ -309,27 +309,107 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   
   
-  ///---- modify the rate according to BR*xsec
+  
+  
+  
+  
+  ///---- high datacard
+  std::cout << " read :: " << inputDataCardHi.c_str() << std::endl;
+  std::ifstream fileDataHi (inputDataCardHi.c_str());  
+  
+  ///---- skip first lines
+  for (int ie = 0; ie<11; ie++) {
+   getline(fileDataHi,buffer);
+  }  
+  
+  ///---- get samples names
+  vSamples.clear();
+  //   process                                                   ggH       qqH       ggWW      VgS       Vg        WJet      Top       WW        WWewk     VV        DYTT      
+  numSample = 0;
+  getline(fileDataHi,buffer);
+  std::stringstream lineSampleHi( buffer ); 
+  lineSampleHi >> tempChar; // process
+  tempName = "process";    
+  
+  while (1) {
+   lineSampleHi >> tempChar;
+   
+   if (tempName != tempChar) {
+    vSamples.push_back (tempChar);
+    tempName = tempChar;
+    numSample++;
+   }
+   else {
+    break;
+   }
+  }
+  
+  ///---- check samples to change ----
+  
+  std::vector<int> vIntToChangeHi; //---- number to change:      number in vSamples
+  std::vector<int> vIntToChangeWithHi; //---- with which number: number in vSamplesToChange
   
   for (int iSample = 0; iSample < vSamples.size(); iSample++) {
-   for (int iIntToChange = 0; iIntToChange < vIntToChange.size(); iIntToChange++) {
-    if ( vIntToChange.at(iIntToChange) == iSample)) {
-     double tempRate = vRate.at(iSample);
-     double scale = (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(tMass) ];
-     if (scale == 0) {
-      std::cout << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(tMass) ] << " *** error: scale = 0" << std::endl;      
-     }
-     vRate.at(iSample) = tempRate * scale;
-     std::cout << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(tMass) ] << std::endl;
+   for (int iSampleToChange = 0; iSampleToChange < vIntToChangeHi.size(); iSampleToChange++) {
+    if (vIntToChangeHi.at(iSampleToChange) == vSamples.at(iSample)) {
+     vIntToChangeHi.push_back(iSample);
+     vIntToChangeWithHi.push_back(iSampleToChange);
     }
    }
   }
   
   
+  ///---- skip one line ----
+  getline(fileDataHi,buffer);
+  
+  
+  ///---- get expected rate of events
+  std::vector<float> vRateHi;
+  getline(fileDataHi,buffer);
+  std::stringstream lineHi( buffer ); 
+  lineHi >> tempChar; //    rate
+  for (int iSample = 0; iSample < vSamples.size(); iSample++) {
+   double temp;
+   lineHi >> temp;
+   vRateHi.push_back(temp);
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  ///---- modify the rate according to BR*xsec
+  
+  for (int iSample = 0; iSample < vSamples.size(); iSample++) {
+   for (int iIntToChange = 0; iIntToChange < vIntToChange.size(); iIntToChange++) {
+    if ( vIntToChange.at(iIntToChange) == iSample)) {
+     double tempRateLo = vRate  .at(iSample);
+     double tempRateHi = vRateHi.at(iSample);
+     float dRtot = dRloMass + dRhiMass;
+     double scaleLo = dRloMass/dRtot * (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vTemplateMasses.at(loMass) ];
+     double scaleHi = dRlhiMass/dRtot * (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vTemplateMasses.at(hiMass) ];
+     if (scaleLo == 0) {
+      std::cout << (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vTemplateMasses.at(loMass) ] << " *** error: scale lo = 0" << std::endl;      
+     }
+     if (scaleHi == 0) {
+      std::cout << (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vTemplateMasses.at(hiMass) ] << " *** error: scale hi = 0" << std::endl;      
+     }
+     vRate.at(iSample) = tempRateLo * scaleLo + tempRateHi * scaleHi;
+//      std::cout << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(loMass) ] << std::endl;
+    }
+   }
+  }
+  
+to be continued ...
+
+  
   ///---- update histograms
   
   
-  TString inputRootFile = Form ("%s/shapes/hww-%sfb.mH%s.%s.root",vNameTemplateMasses.at(tMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(tMass).c_str(),tag.c_str());
+  TString inputRootFile = Form ("%s/shapes/hww-%sfb.mH%s.%s.root",vNameTemplateMasses.at(loMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(loMass).c_str(),tag.c_str());
   TFile * old_file = new TFile(inputRootFile.Data());
 
   TFile* new_file = TFile::Open("temp.root", "RECREATE");  // my output file
@@ -340,8 +420,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
    for (int iIntToChange = 0; iIntToChange < vIntToChange.size(); iIntToChange++) {
     if ( vIntToChange.at(iIntToChange) == iSample)) {
      double tempRate = vRate.at(iSample);
-     std::cout << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(tMass) ] << std::endl;
-     double scale = (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(tMass) ];
+     std::cout << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(loMass) ] << std::endl;
+     double scale = (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(loMass) ];
 
      TList* list = (TList*) old_file->GetListOfKeys() ;
      //   old_file->GetListOfKeys()->Print()
@@ -448,7 +528,7 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   
   ///---- 2) copy root file
-  CommandToExec = Form("mv temp.root %s/shapes/hww-%sfb.mH%s.%s.root",vNameAllMasses.at(iMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(tMass).c_str(),tag.c_str());
+  CommandToExec = Form("mv temp.root %s/shapes/hww-%sfb.mH%s.%s.root",vNameAllMasses.at(iMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(loMass).c_str(),tag.c_str());
   //   std::cout << CommandToExec.Data() << std::endl;
   gSystem->Exec(CommandToExec);  
   
