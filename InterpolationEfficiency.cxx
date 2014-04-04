@@ -3,31 +3,31 @@
 #include <vector>
 #include <map>
 
-//----                low   dR                 up    dR
+//----                low   dR                 hi    dR
 std::pair< std::pair <int, float> , std::pair <int, float> > GetCloserMass(float mass, std::vector<float> &vTemplateMasses) {
  
  float Dx_lo;
- float Dx_up;
+ float Dx_hi;
  
  int iTemplate_lo = -1;
- int iTemplate_up = -1;
+ int iTemplate_hi = -1;
  //  std::cout << " vTemplateMasses.size() = " << vTemplateMasses.size() << std::endl;
  if (vTemplateMasses.size() != 1) {
   for (int iMass = 0; iMass < (vTemplateMasses.size()-1); iMass++) {
    float tempDx_lo;
-   float tempDx_up;
+   float tempDx_hi;
    
    tempDx_lo = mass - vTemplateMasses.at(iMass);
-   tempDx_up = vTemplateMasses.at(iMass+1) - mass;
+   tempDx_hi = vTemplateMasses.at(iMass+1) - mass;
    
-   if (tempDx_lo >= 0 && tempDx_up > 0) { //----> it's between A -- mass --- B
-   if (fabs (tempDx_lo) < fabs (tempDx_up)) {
+   if (tempDx_lo >= 0 && tempDx_hi > 0) { //----> it's between A -- mass --- B
+   if (fabs (tempDx_lo) < fabs (tempDx_hi)) {
     iTemplate_lo = iMass;
     Dx_lo = fabs(tempDx_lo);
    }
    else {
-    iTemplate_up = iMass+1;
-    Dx_up = fabs(tempDx_up);
+    iTemplate_hi = iMass+1;
+    Dx_hi = fabs(tempDx_hi);
    }
    break;
    }
@@ -35,9 +35,9 @@ std::pair< std::pair <int, float> , std::pair <int, float> > GetCloserMass(float
  }
  
  std::pair <int, float> lo_pair (iTemplate_lo, Dx_lo);
- std::pair <int, float> up_pair (iTemplate_up, Dx_up);
+ std::pair <int, float> hi_pair (iTemplate_hi, Dx_hi);
  
- return std::pair< std::pair <int, float> , std::pair <int, float> > (lo_pair, up_pair) ;
+ return std::pair< std::pair <int, float> , std::pair <int, float> > (lo_pair, hi_pair) ;
 }
 
 
@@ -219,19 +219,23 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   std::cout << " iMass = " << iMass << " : " << vNameAllMasses.size() << std::endl;
   std::pair< std::pair <int, float> , std::pair <int, float> > temp_pair = GetCloserMass(vAllMasses.at(iMass), vTemplateMasses);
   int loMass = temp_pair.first.first;
-  int upMass = temp_pair.second.first;
+  int hiMass = temp_pair.second.first;
   float dRloMass = temp_pair.first.second;
-  float dRupMass = temp_pair.second.second;
+  float dRhiMass = temp_pair.second.second;
   
   
   std::cout << "[" << iMass << ":" << vNameAllMasses.size()-1 << "] = " << vAllMasses.at(iMass) << " -> [" << loMass << "]";
-  std::cout << " < X < [" << upMass << "]";
+  std::cout << " < X < [" << hiMass << "]";
   
-  if (loMass == -1 && upMass == -1) { ///---- no "close" mass point
+  if (loMass == -1 && hiMass == -1) { ///---- no "close" mass point
    continue;
   }
   
   if (vAllMasses.at(iMass) == vTemplateMasses.at(loMass)) { ///---- if it is an already set mass, skip!
+   continue;
+  }
+
+  if (vAllMasses.at(iMass) == vTemplateMasses.at(hiMass)) { ///---- if it is an already set mass, skip!
    continue;
   }
   
@@ -239,14 +243,14 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
  
   
   TString inputDataCardLo = Form ("%s/%s",vNameTemplateMasses.at(loMass).c_str(),templateDC.c_str());
-  std::string inputDataCardLo = inputDataCardLo.Data();
+  std::string inputDataCardStringLo = inputDataCardLo.Data();
   TString inputDataCardHi = Form ("%s/%s",vNameTemplateMasses.at(hiMass).c_str(),templateDC.c_str());
-  std::string inputDataCardHi = inputDataCardHi.Data();
+  std::string inputDataCardStringHi = inputDataCardHi.Data();
   
   ///---- low datacard
   std::string buffer;
-  std::cout << " read :: " << inputDataCardLo.c_str() << std::endl;
-  std::ifstream fileDataLo (inputDataCardLo.c_str());  
+  std::cout << " read :: " << inputDataCardStringLo.c_str() << std::endl;
+  std::ifstream fileDataLo (inputDataCardStringLo.c_str());  
   
   ///---- skip first lines
   for (int ie = 0; ie<11; ie++) {
@@ -298,6 +302,9 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   ///---- get expected rate of events
   std::vector<float> vRate;
+  std::vector<double> vScaleLo;
+  std::vector<double> vScaleHi;
+  
   getline(fileDataLo,buffer);
   std::stringstream line( buffer ); 
   line >> tempChar; //    rate
@@ -305,6 +312,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
    double temp;
    line >> temp;
    vRate.push_back(temp);
+   vScaleLo.push_back(0);
+   vScaleHi.push_back(0);
   }
   
   
@@ -314,8 +323,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   
   ///---- high datacard
-  std::cout << " read :: " << inputDataCardHi.c_str() << std::endl;
-  std::ifstream fileDataHi (inputDataCardHi.c_str());  
+  std::cout << " read :: " << inputDataCardStringHi.c_str() << std::endl;
+  std::ifstream fileDataHi (inputDataCardStringHi.c_str());  
   
   ///---- skip first lines
   for (int ie = 0; ie<11; ie++) {
@@ -398,20 +407,22 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
       std::cout << (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vTemplateMasses.at(hiMass) ] << " *** error: scale hi = 0" << std::endl;      
      }
      vRate.at(iSample) = tempRateLo * scaleLo + tempRateHi * scaleHi;
-//      std::cout << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(loMass) ] << std::endl;
+     vScaleLo.at(iSample) = scaleLo;
+     vScaleHi.at(iSample) = scaleHi;
     }
    }
   }
   
-to be continued ...
 
   
-  ///---- update histograms
+  ///---- hidate histograms
   
   
-  TString inputRootFile = Form ("%s/shapes/hww-%sfb.mH%s.%s.root",vNameTemplateMasses.at(loMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(loMass).c_str(),tag.c_str());
-  TFile * old_file = new TFile(inputRootFile.Data());
-
+  TString inputRootFileLo = Form ("%s/shapes/hww-%sfb.mH%s.%s.root",vNameTemplateMasses.at(loMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(loMass).c_str(),tag.c_str());
+  TFile * old_file_Lo = new TFile(inputRootFileLo.Data());
+  TString inputRootFileHi = Form ("%s/shapes/hww-%sfb.mH%s.%s.root",vNameTemplateMasses.at(hiMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(hiMass).c_str(),tag.c_str());
+  TFile * old_file_Hi = new TFile(inputRootFileHi.Data());
+  
   TFile* new_file = TFile::Open("temp.root", "RECREATE");  // my output file
   std::vector <std::string> listOfChangedHistos;
   
@@ -420,17 +431,17 @@ to be continued ...
    for (int iIntToChange = 0; iIntToChange < vIntToChange.size(); iIntToChange++) {
     if ( vIntToChange.at(iIntToChange) == iSample)) {
      double tempRate = vRate.at(iSample);
-     std::cout << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(loMass) ] << std::endl;
-     double scale = (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith.at(iIntToChange))) [ vTemplateMasses.at(loMass) ];
+     double scaleLo = vScaleLo.at(iSample);
+     double scaleHi = vScaleHi.at(iSample);
 
-     TList* list = (TList*) old_file->GetListOfKeys() ;
-     //   old_file->GetListOfKeys()->Print()
-     TIter next(old_file->GetListOfKeys()) ;
-     TKey* key ;
+     TList* list_Lo = (TList*) old_file_Lo->GetListOfKeys() ;
+     TIter nextLo(old_file_Lo->GetListOfKeys()) ;
+     TKey* key_Lo ;
      TObject* obj ;
      
-     while ( key = (TKey*) next() ) {
-      obj = key->ReadObj() ;
+     ///---- lo
+     while ( key_Lo = (TKey*) nextLo() ) {
+      obj = key_Lo->ReadObj() ;
       if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
        && (!obj->InheritsFrom("TH2"))
        && (!obj->InheritsFrom("TH1")) 
@@ -443,16 +454,13 @@ to be continued ...
        //     printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
       //    
       
-      
-//       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;
-      
+//       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
       std::string stringToParse   = obj->GetName();
       std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
       
       // different member versions of find in the same order as above:
       std::size_t found = stringToParse.find(stringToLookFor);
 
-      
       //---- ggH_SM, qqH_SM, ... not to be modified!
       std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
       stringToLookFor_SM.append ("_SM");
@@ -466,20 +474,74 @@ to be continued ...
        TH1F* objH = (TH1F*) obj->Clone();
        
 //        std::cout << " >> Integral = " << objH->Integral();
-       objH->Scale(scale); ///----> scale
+       objH->Scale(scaleLo); ///----> scale
 //        std::cout << " -> " << objH->Integral() << std::endl;;
        objH->Write();
       }
       
-     }     
+     }
+     
+     
+     
+     ///---- hi
+     while ( key_Hi = (TKey*) nextLo() ) {
+      obj = key_Hi->ReadObj() ;
+      if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
+       && (!obj->InheritsFrom("TH2"))
+       && (!obj->InheritsFrom("TH1")) 
+      ) {
+       //     
+       //      printf("Object %s is not 1D or 2D histogram : will not be converted\n",obj->GetName()) ;
+       //      
+      }
+      //     
+      //     printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
+      //    
+      
+      //       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
+      std::string stringToParse   = obj->GetName();
+      std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+      
+      // different member versions of find in the same order as above:
+      std::size_t found = stringToParse.find(stringToLookFor);
+      
+      //---- ggH_SM, qqH_SM, ... not to be modified!
+      std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+      stringToLookFor_SM.append ("_SM");
+      std::size_t found_SM = stringToParse.find(stringToLookFor_SM);
+      
+      //----    if ggH                   but not  ggH_SM
+      if ((found!=std::string::npos) && (found_SM==std::string::npos)) {
+       //     std::cout << "first 'XXX' found at: " << found << '\n';
+       
+       listOfChangedHistos.push_back(stringToParse);
+       TH1F* objH = (TH1F*) obj->Clone("TEMP");
+       
+       //        std::cout << " >> Integral = " << objH->Integral();
+       objH->Scale(scaleHi); ///----> scale
+       //        std::cout << " -> " << objH->Integral() << std::endl;;
+       
+       
+       ///---- join lo/hi
+       
+       TH1F* tempToJoin = (TH1F*) new_file->Get(stringToParse.c_str());
+       tempToJoin.Add((TH1F*) objH);
+       tempToJoin->Write();
+             
+//        objH->Write();
+      }
+      
+     }
+     
+     
     }
    }
   }
   
   
-  ///----> copy the remaining histograms 
+  ///----> copy the remaining histograms  (from "Lo", they need to be the same!)
 
-  TList* list = (TList*) old_file->GetListOfKeys() ;
+  TList* list = (TList*) old_file_Lo->GetListOfKeys() ;
   TIter next(old_file->GetListOfKeys()) ;
   TKey* key ;
   TObject* obj ;
