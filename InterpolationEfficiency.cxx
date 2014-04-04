@@ -20,7 +20,7 @@ std::pair< std::pair <int, float> , std::pair <int, float> > GetCloserMass(float
    tempDx_lo = mass - vTemplateMasses.at(iMass);
    tempDx_hi = vTemplateMasses.at(iMass+1) - mass;
    
-   std::cout << " iMass = " << iMass << " :: tempDx_lo = " << tempDx_lo << " ; tempDx_hi = " << tempDx_hi << std::endl;
+//    std::cout << " iMass = " << iMass << " :: tempDx_lo = " << tempDx_lo << " ; tempDx_hi = " << tempDx_hi << std::endl;
    if (tempDx_lo >= 0 && tempDx_hi > 0) { //----> it's between A -- mass --- B
     iTemplate_lo = iMass;
     Dx_lo = fabs(tempDx_lo);
