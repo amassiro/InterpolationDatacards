@@ -402,8 +402,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
 //      std::cout << " vIntToChangeWithHi.size() = " << vIntToChangeWithHi.size() << std::endl;
 //      std::cout << "here iSample = " << iSample << "  iIntToChange = " << iIntToChange << " vIntToChangeWithHi.at(" << iIntToChange << ") = " << vIntToChangeWithHi.at(iIntToChange) << std::endl;
      
-     double scaleLo = dRloMass/dRtot * (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vTemplateMasses.at(loMass) ];
-     double scaleHi = dRhiMass/dRtot * (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vTemplateMasses.at(hiMass) ];
+     double scaleLo = dRhiMass/dRtot * (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vTemplateMasses.at(loMass) ];
+     double scaleHi = dRloMass/dRtot * (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vTemplateMasses.at(hiMass) ];
      if (scaleLo == 0) {
       std::cout << (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vTemplateMasses.at(loMass) ] << " *** error: scale lo = 0" << std::endl;      
      }
