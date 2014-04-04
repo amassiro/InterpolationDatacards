@@ -3,13 +3,13 @@ InterpolationDatacards
 
 Interpolate datacards
 
-- VBF
-- VH
+    - VBF
+    - VH
 
 Datacards are 5 GeV steps
 
-- Transform datacards from latino format to svn commit format
-- interpolate to the nearest point using \sigma * BR scaling
+    - Transform datacards from latino format to svn commit format
+    - interpolate to the nearest point using \sigma * BR scaling
 
 
 Code previously in ~/Dropbox/VBF/BrazilianPlots/Interpolation.cxx now committed to git here
@@ -25,10 +25,17 @@ Example in
 
 Where:
 
+    xps13
     /home/amassiro/Cern/Code/VBF/InterpolationDatacards
 
     
 
+# Interpolation of efficiencies
+    
+    r00t -q InterpolationEfficiency.cxx\(\"hwwof_2j_shape_8TeV.txt\",\"19.36\",\"of_2j_shape_mll\",8\)
+
+    
+    
 ======================
 
 # VH
