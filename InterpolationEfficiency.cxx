@@ -11,7 +11,7 @@ std::pair< std::pair <int, float> , std::pair <int, float> > GetCloserMass(float
  
  int iTemplate_lo = -1;
  int iTemplate_hi = -1;
- //  std::cout << " vTemplateMasses.size() = " << vTemplateMasses.size() << std::endl;
+//   std::cout << " vTemplateMasses.size() = " << vTemplateMasses.size() << std::endl;
  if (vTemplateMasses.size() != 1) {
   for (int iMass = 0; iMass < (vTemplateMasses.size()-1); iMass++) {
    float tempDx_lo;
@@ -20,15 +20,12 @@ std::pair< std::pair <int, float> , std::pair <int, float> > GetCloserMass(float
    tempDx_lo = mass - vTemplateMasses.at(iMass);
    tempDx_hi = vTemplateMasses.at(iMass+1) - mass;
    
+   std::cout << " iMass = " << iMass << " :: tempDx_lo = " << tempDx_lo << " ; tempDx_hi = " << tempDx_hi << std::endl;
    if (tempDx_lo >= 0 && tempDx_hi > 0) { //----> it's between A -- mass --- B
-   if (fabs (tempDx_lo) < fabs (tempDx_hi)) {
     iTemplate_lo = iMass;
     Dx_lo = fabs(tempDx_lo);
-   }
-   else {
     iTemplate_hi = iMass+1;
     Dx_hi = fabs(tempDx_hi);
-   }
    break;
    }
   }
@@ -519,7 +516,7 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
        
        //        std::cout << " >> Integral = " << objH->Integral();
        objH->Scale(scaleHi); ///----> scale
-       //        std::cout << " -> " << objH->Integral() << std::endl;;
+       std::cout << " -> " << objH->Integral() << std::endl;;
        
        
        ///---- join lo/hi
@@ -542,7 +539,7 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   ///----> copy the remaining histograms  (from "Lo", they need to be the same!)
 
   TList* list = (TList*) old_file_Lo->GetListOfKeys() ;
-  TIter next(old_file->GetListOfKeys()) ;
+  TIter next(old_file_Lo->GetListOfKeys()) ;
   TKey* key ;
   TObject* obj ;
   
@@ -571,7 +568,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   
   new_file->Close();
-  delete old_file;
+  delete old_file_Lo;
+  delete old_file_Hi;
   
   
   
@@ -596,7 +594,7 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   ///---- 3) create datacard
     
-  CommandToExec = Form("head -13  %s > temp_head_DC.txt",inputDataCard.c_str());
+  CommandToExec = Form("head -13  %s > temp_head_DC.txt",inputDataCardStringLo.c_str());
   //   std::cout << CommandToExec.Data() << std::endl;
   gSystem->Exec(CommandToExec);  
   
@@ -611,7 +609,7 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   myfile.close(); 
   
   
-  CommandToExec = Form("tail -n+15 %s > temp_queue_DC.txt",inputDataCard.c_str());
+  CommandToExec = Form("tail -n+15 %s > temp_queue_DC.txt",inputDataCardStringLo.c_str());
   //   std::cout << CommandToExec.Data() << std::endl;
   gSystem->Exec(CommandToExec);  
   

@@ -32,6 +32,11 @@ Where:
 
 # Interpolation of efficiencies
     
+    cp -r  ../RepositoryDataCardNewLumi/summer2013/couplings/hww2l2v/* ./
+    rm -r ???.?/
+    ls -d ???/ | grep -v 110 | grep -v 115 | grep -v 120 | grep -v 125 | grep -v 130 | grep -v 135 | grep -v 140 | grep -v 145 \
+            | grep -v 150 | grep -v 155 | grep -v 160 | grep -v 170 | grep -v 180 | grep -v 190 | grep -v 200 | grep -v 250 | grep -v 300 \
+            | awk '{print "rm -r "$1}' | /bin/sh
     r00t -q InterpolationEfficiency.cxx\(\"hwwof_2j_shape_8TeV.txt\",\"19.36\",\"of_2j_shape_mll\",8\)
 
     
