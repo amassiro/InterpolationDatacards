@@ -250,7 +250,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   std::ifstream fileDataLo (inputDataCardStringLo.c_str());  
   
   ///---- skip first lines
-  for (int ie = 0; ie<11; ie++) {
+//   for (int ie = 0; ie<11; ie++) {
+  for (int ie = 0; ie<13; ie++) {
    getline(fileDataLo,buffer);
   }  
   
@@ -277,6 +278,10 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
     break;
    }
   }
+  
+  
+  std::cout << " vSamples size = " << vSamples.size() << std::endl;
+  
   
   ///---- check samples to change ----
   
@@ -324,7 +329,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   std::ifstream fileDataHi (inputDataCardStringHi.c_str());  
   
   ///---- skip first lines
-  for (int ie = 0; ie<11; ie++) {
+//   for (int ie = 0; ie<11; ie++) {
+  for (int ie = 0; ie<13; ie++) {
    getline(fileDataHi,buffer);
   }  
   
@@ -356,8 +362,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   std::vector<int> vIntToChangeWithHi; //---- with which number: number in vSamplesToChange
   
   for (int iSample = 0; iSample < vSamples.size(); iSample++) {
-   for (int iSampleToChange = 0; iSampleToChange < vIntToChangeHi.size(); iSampleToChange++) {
-    if (vIntToChangeHi.at(iSampleToChange) == vSamples.at(iSample)) {
+   for (int iSampleToChange = 0; iSampleToChange < vSamplesToChange.size(); iSampleToChange++) {
+    if (vSamplesToChange.at(iSampleToChange) == vSamples.at(iSample)) {
      vIntToChangeHi.push_back(iSample);
      vIntToChangeWithHi.push_back(iSampleToChange);
     }
@@ -381,11 +387,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   }
   
   
-  
-  
-  
-  
-  
+//   std::cout << "here" << std::endl;
+   
   
   ///---- modify the rate according to BR*xsec
   
@@ -395,8 +398,12 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
      double tempRateLo = vRate  .at(iSample);
      double tempRateHi = vRateHi.at(iSample);
      float dRtot = dRloMass + dRhiMass;
+//      std::cout << " vIntToChangeWith  .size() = " << vIntToChangeWith  .size() << std::endl;
+//      std::cout << " vIntToChangeWithHi.size() = " << vIntToChangeWithHi.size() << std::endl;
+//      std::cout << "here iSample = " << iSample << "  iIntToChange = " << iIntToChange << " vIntToChangeWithHi.at(" << iIntToChange << ") = " << vIntToChangeWithHi.at(iIntToChange) << std::endl;
+     
      double scaleLo = dRloMass/dRtot * (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vTemplateMasses.at(loMass) ];
-     double scaleHi = dRlhiMass/dRtot * (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vTemplateMasses.at(hiMass) ];
+     double scaleHi = dRhiMass/dRtot * (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vAllMasses.at(iMass) ] / (xSecBR.at(vIntToChangeWithHi.at(iIntToChange))) [ vTemplateMasses.at(hiMass) ];
      if (scaleLo == 0) {
       std::cout << (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vAllMasses.at(iMass) ] << " / " << (xSecBR.at(vIntToChangeWith  .at(iIntToChange))) [ vTemplateMasses.at(loMass) ] << " *** error: scale lo = 0" << std::endl;      
      }
@@ -411,8 +418,10 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   }
   
 
+//   std::cout << "here" << std::endl;
   
-  ///---- hidate histograms
+  
+  ///---- update histograms
   
   
   TString inputRootFileLo = Form ("%s/shapes/hww-%sfb.mH%s.%s.root",vNameTemplateMasses.at(loMass).c_str(),lumi.c_str(),vNameTemplateMasses.at(loMass).c_str(),tag.c_str());
@@ -594,7 +603,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   
   ///---- 3) create datacard
     
-  CommandToExec = Form("head -13  %s > temp_head_DC.txt",inputDataCardStringLo.c_str());
+//   CommandToExec = Form("head -13  %s > temp_head_DC.txt",inputDataCardStringLo.c_str());
+  CommandToExec = Form("head -15  %s > temp_head_DC.txt",inputDataCardStringLo.c_str());
   //   std::cout << CommandToExec.Data() << std::endl;
   gSystem->Exec(CommandToExec);  
   
@@ -609,7 +619,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   myfile.close(); 
   
   
-  CommandToExec = Form("tail -n+15 %s > temp_queue_DC.txt",inputDataCardStringLo.c_str());
+//   CommandToExec = Form("tail -n+15 %s > temp_queue_DC.txt",inputDataCardStringLo.c_str());
+  CommandToExec = Form("tail -n+17 %s > temp_queue_DC.txt",inputDataCardStringLo.c_str());
   //   std::cout << CommandToExec.Data() << std::endl;
   gSystem->Exec(CommandToExec);  
   
