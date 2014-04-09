@@ -53,7 +53,7 @@ void  copyV2Vs (std::string V[], std::vector<std::string> &vV, int n) { ///---->
 }
 
 
-void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47", std::string tag = "of_2j_shape", int sqrts = 8, int lowMass = 0 ){
+void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47", std::string tag = "of_2j_shape", int sqrts = 8, int lowMass = 0, int interpolateHistograms = 1){
  
  ///===========================================================================
   
@@ -445,12 +445,14 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
      TKey* key_Lo ;
      TObject* obj ;
      
-     ///---- lo
-     while ( key_Lo = (TKey*) nextLo() ) {
-      obj = key_Lo->ReadObj() ;
-      if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
-       && (!obj->InheritsFrom("TH2"))
-       && (!obj->InheritsFrom("TH1")) 
+     
+     if (interpolateHistograms == 1) {
+      ///---- lo
+      while ( key_Lo = (TKey*) nextLo() ) {
+       obj = key_Lo->ReadObj() ;
+       if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
+        && (!obj->InheritsFrom("TH2"))
+        && (!obj->InheritsFrom("TH1")) 
        ) {
         //     
         //      printf("Object %s is not 1D or 2D histogram : will not be converted\n",obj->GetName()) ;
@@ -458,86 +460,104 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
        }
        //     
        //     printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
-      //    
-      
-//       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
-      std::string stringToParse   = obj->GetName();
-      std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
-      
-      // different member versions of find in the same order as above:
-      std::size_t found = stringToParse.find(stringToLookFor);
-
-      //---- ggH_SM, qqH_SM, ... not to be modified!
-      std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
-      stringToLookFor_SM.append ("_SM");
-      std::size_t found_SM = stringToParse.find(stringToLookFor_SM);
-      
-      //----    if ggH                   but not  ggH_SM
-      if ((found!=std::string::npos) && (found_SM==std::string::npos)) {
-       //     std::cout << "first 'XXX' found at: " << found << '\n';
+       //    
        
-       listOfChangedHistos.push_back(stringToParse);
-       TH1F* objH = (TH1F*) obj->Clone();
+       //       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
+       std::string stringToParse   = obj->GetName();
+       std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
        
-//        std::cout << " >> Integral = " << objH->Integral();
-       objH->Scale(scaleLo); ///----> scale
-//        std::cout << " -> " << objH->Integral() << std::endl;;
-       objH->Write();
+       // different member versions of find in the same order as above:
+       std::size_t found = stringToParse.find(stringToLookFor);
+       
+       //---- ggH_SM, qqH_SM, ... not to be modified!
+       std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+       stringToLookFor_SM.append ("_SM");
+       std::size_t found_SM = stringToParse.find(stringToLookFor_SM);
+       
+       //----    if ggH                   but not  ggH_SM
+       if ((found!=std::string::npos) && (found_SM==std::string::npos)) {
+        //     std::cout << "first 'XXX' found at: " << found << '\n';
+        
+        listOfChangedHistos.push_back(stringToParse);
+        TH1F* objH = (TH1F*) obj->Clone();
+        
+        //        std::cout << " >> Integral = " << objH->Integral();
+        objH->Scale(scaleLo); ///----> scale
+        //        std::cout << " -> " << objH->Integral() << std::endl;;
+        objH->Write();
+       }
+       
       }
       
-     }
-     
-     
-     
-     ///---- hi
-     while ( key_Hi = (TKey*) nextLo() ) {
-      obj = key_Hi->ReadObj() ;
-      if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
-       && (!obj->InheritsFrom("TH2"))
-       && (!obj->InheritsFrom("TH1")) 
-      ) {
+      
+      
+      ///---- hi
+      while ( key_Hi = (TKey*) nextLo() ) {
+       obj = key_Hi->ReadObj() ;
+       if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
+        && (!obj->InheritsFrom("TH2"))
+        && (!obj->InheritsFrom("TH1")) 
+       ) {
+        //     
+        //      printf("Object %s is not 1D or 2D histogram : will not be converted\n",obj->GetName()) ;
+        //      
+       }
        //     
-       //      printf("Object %s is not 1D or 2D histogram : will not be converted\n",obj->GetName()) ;
-       //      
+       //     printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
+       //    
+       
+       //       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
+       std::string stringToParse   = obj->GetName();
+       std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+       
+       // different member versions of find in the same order as above:
+       std::size_t found = stringToParse.find(stringToLookFor);
+       
+       //---- ggH_SM, qqH_SM, ... not to be modified!
+       std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+       stringToLookFor_SM.append ("_SM");
+       std::size_t found_SM = stringToParse.find(stringToLookFor_SM);
+       
+       //----    if ggH                   but not  ggH_SM
+       if ((found!=std::string::npos) && (found_SM==std::string::npos)) {
+        //     std::cout << "first 'XXX' found at: " << found << '\n';
+        
+        listOfChangedHistos.push_back(stringToParse);
+        TH1F* objH = (TH1F*) obj->Clone("TEMP");
+        
+        //        std::cout << " >> Integral = " << objH->Integral();
+        objH->Scale(scaleHi); ///----> scale
+        std::cout << " -> " << objH->Integral() << std::endl;;
+        
+        
+        ///---- join lo/hi
+        
+        TH1F* tempToJoin = (TH1F*) new_file->Get(stringToParse.c_str());
+        tempToJoin.Add((TH1F*) objH);
+        tempToJoin->Write();
+        
+        //        objH->Write();
+       }
+       
       }
-      //     
-      //     printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
-      //    
-      
-      //       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
-      std::string stringToParse   = obj->GetName();
-      std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
-      
-      // different member versions of find in the same order as above:
-      std::size_t found = stringToParse.find(stringToLookFor);
-      
-      //---- ggH_SM, qqH_SM, ... not to be modified!
-      std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
-      stringToLookFor_SM.append ("_SM");
-      std::size_t found_SM = stringToParse.find(stringToLookFor_SM);
-      
-      //----    if ggH                   but not  ggH_SM
-      if ((found!=std::string::npos) && (found_SM==std::string::npos)) {
-       //     std::cout << "first 'XXX' found at: " << found << '\n';
-       
-       listOfChangedHistos.push_back(stringToParse);
-       TH1F* objH = (TH1F*) obj->Clone("TEMP");
-       
-       //        std::cout << " >> Integral = " << objH->Integral();
-       objH->Scale(scaleHi); ///----> scale
-       std::cout << " -> " << objH->Integral() << std::endl;;
-       
-       
-       ///---- join lo/hi
-       
-       TH1F* tempToJoin = (TH1F*) new_file->Get(stringToParse.c_str());
-       tempToJoin.Add((TH1F*) objH);
-       tempToJoin->Write();
-             
-//        objH->Write();
-      }
-      
      }
+     else {
+      ///---- do not interpolate histograms, but only rate
+      if (dRloMass < dRhiMass) {
+       //---- use "lo"
+       
+       //--- 
+       
+      }
+      else {
+       //---- use "hi"
+       
+       //--- 
+       
+      }
+     }
+     
+     
      
      
     }
