@@ -39,6 +39,8 @@ Where:
             | awk '{print "rm -r "$1}' | /bin/sh
     r00t -q InterpolationEfficiency.cxx\(\"hwwof_2j_shape_8TeV.txt\",\"19.36\",\"of_2j_shape_mll\",8\)
 
+    //----    8 = 8 TeV, 0 = no low mass, 0 = no interpolate histograms
+    r00t -q InterpolationEfficiency.cxx\(\"hwwof_2j_shape_8TeV.txt\",\"19.36\",\"of_2j_shape_mll\",8,0,0\)
     
     
 ======================
