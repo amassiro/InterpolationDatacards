@@ -306,6 +306,9 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
   std::vector<float> vRate;
   std::vector<double> vScaleLo;
   std::vector<double> vScaleHi;
+
+  std::vector<double> vScaleJustLo;
+  std::vector<double> vScaleJustHi;
   
   getline(fileDataLo,buffer);
   std::stringstream line( buffer ); 
@@ -316,6 +319,8 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
    vRate.push_back(temp);
    vScaleLo.push_back(0);
    vScaleHi.push_back(0);
+   vScaleJustLo.push_back(0);
+   vScaleJustHi.push_back(0);
   }
   
   
@@ -413,6 +418,10 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
      vRate.at(iSample) = tempRateLo * scaleLo + tempRateHi * scaleHi;
      vScaleLo.at(iSample) = scaleLo;
      vScaleHi.at(iSample) = scaleHi;
+       
+     vScaleJustLo.at(iSample) = vRate.at(iSample) / tempRateLo;
+     vScaleJustHi.at(iSample) = vRate.at(iSample) / tempRateHi;
+     
     }
    }
   }
@@ -440,6 +449,9 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
      double scaleLo = vScaleLo.at(iSample);
      double scaleHi = vScaleHi.at(iSample);
 
+     double scaleJustLo = vScaleJustLo.at(iSample);
+     double scaleJustHi = vScaleJustHi.at(iSample);
+     
      TList* list_Lo = (TList*) old_file_Lo->GetListOfKeys() ;
      TIter nextLo(old_file_Lo->GetListOfKeys()) ;
      TKey* key_Lo ;
@@ -545,13 +557,91 @@ void InterpolationEfficiency(std::string templateDC, std::string lumi = "19.47",
       ///---- do not interpolate histograms, but only rate
       if (dRloMass < dRhiMass) {
        //---- use "lo"
-       
+       while ( key_Lo = (TKey*) nextLo() ) {
+        obj = key_Lo->ReadObj() ;
+        if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
+         && (!obj->InheritsFrom("TH2"))
+         && (!obj->InheritsFrom("TH1")) 
+        ) {
+         //     
+         //      printf("Object %s is not 1D or 2D histogram : will not be converted\n",obj->GetName()) ;
+         //      
+        }
+        //     
+        //     printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
+        //    
+        
+        //       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
+        std::string stringToParse   = obj->GetName();
+        std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+        
+        // different member versions of find in the same order as above:
+        std::size_t found = stringToParse.find(stringToLookFor);
+        
+        //---- ggH_SM, qqH_SM, ... not to be modified!
+        std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+        stringToLookFor_SM.append ("_SM");
+        std::size_t found_SM = stringToParse.find(stringToLookFor_SM);
+        
+        //----    if ggH                   but not  ggH_SM
+        if ((found!=std::string::npos) && (found_SM==std::string::npos)) {
+         //     std::cout << "first 'XXX' found at: " << found << '\n';
+         
+         listOfChangedHistos.push_back(stringToParse);
+         TH1F* objH = (TH1F*) obj->Clone();
+         
+         //        std::cout << " >> Integral = " << objH->Integral();
+         objH->Scale(scaleJustLo); ///----> scale
+         //        std::cout << " -> " << objH->Integral() << std::endl;;
+         objH->Write();
+        }
+        
+       }
        //--- 
        
       }
       else {
        //---- use "hi"
-       
+       while ( key_Hi = (TKey*) nextLo() ) {
+        obj = key_Hi->ReadObj() ;
+        if (   (strcmp(obj->IsA()->GetName(),"TProfile")!=0)
+         && (!obj->InheritsFrom("TH2"))
+         && (!obj->InheritsFrom("TH1")) 
+        ) {
+         //     
+         //      printf("Object %s is not 1D or 2D histogram : will not be converted\n",obj->GetName()) ;
+         //      
+        }
+        //     
+        //     printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
+        //    
+        
+        //       std::cout << "          --- obj->GetName() = " << obj->GetName() << std::endl;      
+        std::string stringToParse   = obj->GetName();
+        std::string stringToLookFor = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+        
+        // different member versions of find in the same order as above:
+        std::size_t found = stringToParse.find(stringToLookFor);
+        
+        //---- ggH_SM, qqH_SM, ... not to be modified!
+        std::string stringToLookFor_SM = vSamplesToChange.at( vIntToChangeWith.at(iIntToChange) );
+        stringToLookFor_SM.append ("_SM");
+        std::size_t found_SM = stringToParse.find(stringToLookFor_SM);
+        
+        //----    if ggH                   but not  ggH_SM
+        if ((found!=std::string::npos) && (found_SM==std::string::npos)) {
+         //     std::cout << "first 'XXX' found at: " << found << '\n';
+         
+         listOfChangedHistos.push_back(stringToParse);
+         TH1F* objH = (TH1F*) obj->Clone("TEMP");
+         
+         //        std::cout << " >> Integral = " << objH->Integral();
+         objH->Scale(scaleJustHi); ///----> scale
+//          std::cout << " -> " << objH->Integral() << std::endl;;
+         
+        }
+        
+       }
        //--- 
        
       }
